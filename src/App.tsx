@@ -1,14 +1,7 @@
 import { Canvas, ThreeElements, useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
-import { Cylinder, Environment, OrbitControls, PerspectiveCamera, Line } from '@react-three/drei'
-import {
-  Debug,
-  Physics,
-  RigidBody,
-  RigidBodyApi,
-  RigidBodyApiRef,
-  useRapier,
-} from '@react-three/rapier'
+import { Environment, OrbitControls, PerspectiveCamera, Line } from '@react-three/drei'
+import { Debug, Physics, RigidBody, RigidBodyApi } from '@react-three/rapier'
 import { useControls } from 'leva'
 
 const Floor = ({ ...props }) => (
@@ -24,12 +17,20 @@ const Box = ({ ...props }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isSelected, setIsSelected] = useState(false)
   const boxRef = useRef<RigidBodyApi>(null!)
+  const meshRef = useRef<THREE.Mesh>(null!)
 
   useEffect(() => {
     if (boxRef.current && isSelected) {
       boxRef.current.setLinvel({ x: 0, y: 10, z: 0 })
     }
   }, [boxRef, isSelected])
+
+  useEffect(() => {
+    if (meshRef.current && isSelected) {
+      console.log(meshRef.current)
+    }
+  }, [meshRef, isSelected])
+
   return (
     <>
       {/* <Line
@@ -42,6 +43,7 @@ const Box = ({ ...props }) => {
         <mesh
           castShadow
           receiveShadow
+          ref={meshRef}
           {...props}
           onPointerOver={() => setIsHovered((hovered) => !hovered)}
           onPointerOut={() => setIsHovered((hovered) => !hovered)}
