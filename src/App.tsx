@@ -6,6 +6,8 @@ import { Debug, Physics, RigidBody, RigidBodyApi } from '@react-three/rapier'
 import { useControls } from 'leva'
 import React, { forwardRef, Suspense, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { Vector3 } from 'three'
+import { useMouse } from './hooks/use-mouse'
 
 const randomRange = (min: number, max: number) => Math.random() * (max - min) + min
 
@@ -31,59 +33,32 @@ const Ball = ({ ...props }) => {
   )
 }
 
-type useMouse = {
-  intersectionObject: THREE.Mesh | null
-  displayObject: THREE.Mesh | null
-}
-
-const useMouse = (params: useMouse) => {
-  const { intersectionObject, displayObject } = params
-  const { camera, raycaster } = useThree()
-
-  useFrame(({ mouse }) => {
-    const mousePosition = new THREE.Vector3(mouse.x, mouse.y, 0)
-
-    if (intersectionObject && displayObject) {
-      raycaster.setFromCamera(mousePosition, camera)
-      const intersections = raycaster.intersectObject(intersectionObject)
-      const intersectionPoint = intersections?.[0]
-        ? [intersections[0].point.x, intersections[0].point.y + 0.5, intersections[0].point.z]
-        : [0, 0, 0]
-
-      const [x, y, z] = intersectionPoint
-
-      displayObject.position.set(x, y, z)
-    }
-  })
-}
-
 const Cue = ({ ...props }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isSelected, setIsSelected] = useState(false)
-  const [cuePosition, setCuePosition] = useState(new THREE.Vector3(0, 0, 0))
+  const [cuePosition, setCuePosition] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0))
   const cueRef = useRef<RigidBodyApi>(null)
   const cueMeshRef = useRef<THREE.Mesh>(null)
   const floorRef = useRef<THREE.Mesh>(null)
   const mousePointRef = useRef<THREE.Mesh>(null)
 
-  // useFrame((state, delta) => {
-  //   console.log(meshRef.current.getWorldPosition(cueRef.current.translation()))
-  // })
-
   useEffect(() => {
     if (cueRef.current && isSelected && cueMeshRef.current) {
-      // cueRef.current.applyImpulse({ x: 0, y: 0, z: 10 })
       cueRef.current.setLinvel({ x: 0, y: 0, z: 0 })
       cueRef.current.setAngvel({ x: 0, y: 0, z: 0 })
       setCuePosition(cueMeshRef.current.getWorldPosition(cueRef.current.translation()))
+      // cueRef.current.applyImpulse({ x: 0, y: 0, z: 25 })
     }
   }, [cueRef, isSelected])
 
-  useMouse({ intersectionObject: floorRef.current, displayObject: mousePointRef.current })
+  const mousePosition = useMouse({
+    intersectionObject: floorRef.current,
+    displayObject: mousePointRef.current,
+    zOffset: 0,
+  })
 
   return (
     <>
-      {/* {cueMeshRef.current && <MouseIdentifier intersectionObject={cueMeshRef.current} />} */}
       <RigidBody colliders='ball' type='dynamic' ref={cueRef}>
         <mesh
           {...props}
@@ -102,6 +77,34 @@ const Cue = ({ ...props }) => {
       </mesh>
       <mesh ref={mousePointRef}>
         <sphereGeometry />
+        <meshStandardMaterial color={'red'} visible={false} />
+      </mesh>
+      <Arrow start={mousePosition} end={cuePosition} />
+    </>
+  )
+}
+
+const Arrow: React.FC<{ start: THREE.Vector3; end: THREE.Vector3 }> = ({ start, end }) => {
+  const arrowRef = useRef<THREE.Mesh>(null)
+
+  useEffect(() => {
+    const vec = end.clone().sub(start)
+    const h = vec.length()
+    vec.normalize()
+    const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec)
+
+    if (arrowRef.current) {
+      arrowRef.current.scale.set(0.25, h, 0.25)
+      arrowRef.current.setRotationFromQuaternion(quaternion)
+      arrowRef.current.position.set(end.x, end.y, end.z)
+      arrowRef.current.translateOnAxis(new THREE.Vector3(0, 1, 0), -h / 2)
+    }
+  }, [start, end])
+
+  return (
+    <>
+      <mesh ref={arrowRef}>
+        <cylinderGeometry />
         <meshStandardMaterial color={'red'} />
       </mesh>
     </>
@@ -109,7 +112,7 @@ const Cue = ({ ...props }) => {
 }
 
 const Stage = () => {
-  const { debug } = useControls({ debug: true })
+  const { debug } = useControls({ debug: false })
   return (
     <Physics colliders={false}>
       {debug && <Debug />}
@@ -134,7 +137,7 @@ const App = () => {
         <Suspense fallback={null}>
           <PerspectiveCamera makeDefault position={[10, 15, 30]} />
           <ambientLight />
-          <OrbitControls makeDefault />
+          <OrbitControls />
           <Environment preset='sunset' />
           <pointLight position={[10, 10, 10]} />
           <Stage />
