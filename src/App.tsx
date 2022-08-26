@@ -1,10 +1,10 @@
 /* eslint-disable react/prop-types */
 import { Environment, OrbitControls, PerspectiveCamera, Trail } from '@react-three/drei'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, ReactThreeFiber, useFrame, useThree } from '@react-three/fiber'
 import { Debug, Physics, RigidBody, RigidBodyApi } from '@react-three/rapier'
 import { useControls } from 'leva'
 import { Suspense, useEffect, useRef, useState } from 'react'
-import { Euler, Vector3 } from 'three'
+import * as THREE from 'three'
 
 const randomRange = (min: number, max: number) => Math.random() * (max - min) + min
 
@@ -30,25 +30,36 @@ const Ball = ({ ...props }) => {
   )
 }
 
-const Arrow: React.FC<{ cuePosition: Vector3 }> = ({ cuePosition }) => {
-  const { viewport } = useThree()
-
-  const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+const MouseIdentifier = () => {
+  const meshRef = useRef<THREE.Mesh>(null)
+  const floorRef = useRef<THREE.Mesh>(null)
+  const { camera, raycaster } = useThree()
 
   useFrame(({ mouse }) => {
-    const x = (mouse.x * viewport.width) / 2
-    const y = (mouse.y * viewport.height) / 2
+    const mousePosition = new THREE.Vector3(mouse.x, mouse.y, 0)
 
-    setMousePosition({ x, y })
-    // ref.current.position.set(x, y, 0)
-    // ref.current.rotation.set(-y, x, 0)
+    if (meshRef.current && floorRef.current) {
+      raycaster.setFromCamera(mousePosition, camera)
+      const intersections = raycaster.intersectObject(floorRef.current)
+      const intersectionPoint = intersections?.[0]
+        ? [intersections[0].point.x, intersections[0].point.y + 1, intersections[0].point.z]
+        : [0, 0, 0]
+
+      const [x, y, z] = intersectionPoint
+
+      meshRef.current.position.set(x, y, z)
+    }
   })
 
   return (
     <>
-      <mesh position={cuePosition} rotation={new Euler(mousePosition.x, mousePosition.y, 1)}>
-        <cylinderGeometry args={[0.1, 0.1, 10, 6]} />
+      <mesh ref={meshRef}>
+        <sphereGeometry />
         <meshStandardMaterial color={'red'} />
+      </mesh>
+      <mesh ref={floorRef}>
+        <boxGeometry args={[50, 1, 50]} />
+        <meshStandardMaterial visible={false} />
       </mesh>
     </>
   )
@@ -57,7 +68,7 @@ const Arrow: React.FC<{ cuePosition: Vector3 }> = ({ cuePosition }) => {
 const Cue = ({ ...props }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isSelected, setIsSelected] = useState(false)
-  const [cuePosition, setCuePosition] = useState(new Vector3(0, 0, 0))
+  const [cuePosition, setCuePosition] = useState(new THREE.Vector3(0, 0, 0))
   const cueRef = useRef<RigidBodyApi>(null!)
   const meshRef = useRef<THREE.Mesh>(null!)
 
@@ -77,7 +88,6 @@ const Cue = ({ ...props }) => {
 
   return (
     <>
-      <Arrow cuePosition={cuePosition} />
       <RigidBody colliders='ball' type='dynamic' ref={cueRef}>
         <mesh
           {...props}
@@ -99,6 +109,7 @@ const Stage = () => {
   return (
     <Physics colliders={false}>
       {debug && <Debug />}
+      <MouseIdentifier />
       <Cue position={[0, 5, 0]} />
       <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
       <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
