@@ -1,12 +1,18 @@
 /* eslint-disable react/display-name */
 /* eslint-disable react/prop-types */
-import { Environment, OrbitControls, PerspectiveCamera, Trail } from '@react-three/drei'
+import {
+  Environment,
+  OrbitControls,
+  OrbitControlsProps,
+  PerspectiveCamera,
+  Trail,
+} from '@react-three/drei'
 import { Canvas, ReactThreeFiber, useFrame, useThree } from '@react-three/fiber'
 import { Debug, Physics, RigidBody, RigidBodyApi } from '@react-three/rapier'
 import { useControls } from 'leva'
 import React, { forwardRef, Suspense, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { Vector3 } from 'three'
+import { useClickAnyWhere, useEventListener } from 'usehooks-ts'
 import { useMouse } from './hooks/use-mouse'
 
 const randomRange = (min: number, max: number) => Math.random() * (max - min) + min
@@ -41,6 +47,7 @@ const Cue = ({ ...props }) => {
   const cueMeshRef = useRef<THREE.Mesh>(null)
   const floorRef = useRef<THREE.Mesh>(null)
   const mousePointRef = useRef<THREE.Mesh>(null)
+  const { controls }: { controls: OrbitControlsProps } = useThree()
 
   useEffect(() => {
     if (cueRef.current && isSelected && cueMeshRef.current) {
@@ -57,6 +64,18 @@ const Cue = ({ ...props }) => {
     zOffset: 0,
   })
 
+  useEventListener('mousedown', () => {
+    if (isHovered) {
+      setIsSelected(true)
+      controls.enabled = false
+    }
+  })
+
+  useEventListener('mouseup', () => {
+    setIsSelected(false)
+    controls.enabled = true
+  })
+
   return (
     <>
       <RigidBody colliders='ball' type='dynamic' ref={cueRef}>
@@ -64,9 +83,7 @@ const Cue = ({ ...props }) => {
           {...props}
           ref={cueMeshRef}
           onPointerOver={() => setIsHovered((hovered) => !hovered)}
-          onPointerOut={() => setIsHovered((hovered) => !hovered)}
-          onPointerDown={() => setIsSelected((selected) => !selected)}
-          onPointerUp={() => setIsSelected((selected) => !selected)}>
+          onPointerOut={() => setIsHovered((hovered) => !hovered)}>
           <sphereGeometry />
           <meshStandardMaterial color={isHovered ? 'hotpink' : 'white'} />
         </mesh>
@@ -79,7 +96,7 @@ const Cue = ({ ...props }) => {
         <sphereGeometry />
         <meshStandardMaterial color={'red'} visible={false} />
       </mesh>
-      <Arrow start={mousePosition} end={cuePosition} />
+      {isSelected && <Arrow start={mousePosition} end={cuePosition} />}
     </>
   )
 }
@@ -89,15 +106,15 @@ const Arrow: React.FC<{ start: THREE.Vector3; end: THREE.Vector3 }> = ({ start, 
 
   useEffect(() => {
     const vec = end.clone().sub(start)
-    const h = vec.length()
+    const length = vec.length()
     vec.normalize()
     const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec)
 
     if (arrowRef.current) {
-      arrowRef.current.scale.set(0.25, h, 0.25)
+      arrowRef.current.scale.set(0.25, length, 0.25)
       arrowRef.current.setRotationFromQuaternion(quaternion)
       arrowRef.current.position.set(end.x, end.y, end.z)
-      arrowRef.current.translateOnAxis(new THREE.Vector3(0, 1, 0), -h / 2)
+      arrowRef.current.translateOnAxis(new THREE.Vector3(0, 1, 0), -length / 2)
     }
   }, [start, end])
 
@@ -137,7 +154,7 @@ const App = () => {
         <Suspense fallback={null}>
           <PerspectiveCamera makeDefault position={[10, 15, 30]} />
           <ambientLight />
-          <OrbitControls />
+          <OrbitControls makeDefault />
           <Environment preset='sunset' />
           <pointLight position={[10, 10, 10]} />
           <Stage />

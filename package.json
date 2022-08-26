@@ -15,7 +15,8 @@
     "leva": "^0.9.30",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "three": "^0.143.0"
+    "three": "^0.143.0",
+    "usehooks-ts": "^2.6.0"
   },
   "devDependencies": {
     "@kalmarv/prettier-config": "^1.0.2",
