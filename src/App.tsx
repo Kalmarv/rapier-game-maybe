@@ -76,6 +76,12 @@ const Cue = ({ ...props }) => {
     controls.enabled = true
   })
 
+  const shoot = (power: number, direction: THREE.Vector3) => {
+    if (cueRef.current) {
+      cueRef.current.applyImpulse(direction.multiplyScalar(power * 10))
+    }
+  }
+
   return (
     <>
       <RigidBody colliders='ball' type='dynamic' ref={cueRef}>
@@ -96,13 +102,19 @@ const Cue = ({ ...props }) => {
         <sphereGeometry />
         <meshStandardMaterial color={'red'} visible={false} />
       </mesh>
-      {isSelected && <Arrow start={mousePosition} end={cuePosition} />}
+      {isSelected && <Arrow start={mousePosition} end={cuePosition} shoot={shoot} />}
     </>
   )
 }
 
-const Arrow: React.FC<{ start: THREE.Vector3; end: THREE.Vector3 }> = ({ start, end }) => {
+const Arrow: React.FC<{
+  start: THREE.Vector3
+  end: THREE.Vector3
+  shoot: (power: number, direction: THREE.Vector3) => void
+}> = ({ start, end, shoot }) => {
   const arrowRef = useRef<THREE.Mesh>(null)
+  const [shotLength, setShotLength] = useState(0)
+  const [direction, setDirection] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0))
 
   useEffect(() => {
     const vec = end.clone().sub(start)
@@ -115,8 +127,12 @@ const Arrow: React.FC<{ start: THREE.Vector3; end: THREE.Vector3 }> = ({ start, 
       arrowRef.current.setRotationFromQuaternion(quaternion)
       arrowRef.current.position.set(end.x, end.y, end.z)
       arrowRef.current.translateOnAxis(new THREE.Vector3(0, 1, 0), -length / 2)
+      setShotLength(length)
+      setDirection(new THREE.Vector3().subVectors(end, start).normalize())
     }
   }, [start, end])
+
+  useEventListener('mouseup', () => shoot(shotLength, direction))
 
   return (
     <>
