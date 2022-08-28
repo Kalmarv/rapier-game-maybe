@@ -46,7 +46,7 @@ const Cue = ({ ...props }) => {
 
   const mousePosition = useMouse({
     intersectionObject: floorRef.current,
-    zOffset: 0,
+    relativePoint: cuePosition,
   })
 
   useEventListener('mousedown', () => {
@@ -87,7 +87,7 @@ const Cue = ({ ...props }) => {
       </RigidBody>
       <mesh ref={floorRef}>
         <boxGeometry args={[500, 0, 500]} />
-        <meshStandardMaterial visible={true} />
+        <meshStandardMaterial visible={false} />
       </mesh>
       {isSelected && <Arrow start={mousePosition} end={cuePosition} shoot={shoot} />}
     </>
