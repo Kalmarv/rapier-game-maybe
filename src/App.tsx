@@ -5,14 +5,13 @@ import {
   OrbitControls,
   OrbitControlsProps,
   PerspectiveCamera,
-  Trail,
 } from '@react-three/drei'
-import { Canvas, ReactThreeFiber, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { Debug, Physics, RigidBody, RigidBodyApi } from '@react-three/rapier'
 import { useControls } from 'leva'
-import React, { forwardRef, Suspense, useEffect, useRef, useState } from 'react'
+import React, { Suspense, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { useClickAnyWhere, useEventListener } from 'usehooks-ts'
+import { useEventListener } from 'usehooks-ts'
 import { useMouse } from './hooks/use-mouse'
 
 const randomRange = (min: number, max: number) => Math.random() * (max - min) + min
@@ -46,7 +45,6 @@ const Cue = ({ ...props }) => {
   const cueRef = useRef<RigidBodyApi>(null)
   const cueMeshRef = useRef<THREE.Mesh>(null)
   const floorRef = useRef<THREE.Mesh>(null)
-  const mousePointRef = useRef<THREE.Mesh>(null)
   const { controls }: { controls: OrbitControlsProps } = useThree()
 
   useEffect(() => {
@@ -60,7 +58,6 @@ const Cue = ({ ...props }) => {
 
   const mousePosition = useMouse({
     intersectionObject: floorRef.current,
-    displayObject: mousePointRef.current,
     zOffset: 0,
   })
 
@@ -84,7 +81,12 @@ const Cue = ({ ...props }) => {
 
   return (
     <>
-      <RigidBody colliders='ball' type='dynamic' ref={cueRef}>
+      <RigidBody
+        colliders='ball'
+        type='dynamic'
+        ref={cueRef}
+        onSleep={() => console.log('sleep')}
+        angularDamping={100}>
         <mesh
           {...props}
           ref={cueMeshRef}
@@ -95,12 +97,8 @@ const Cue = ({ ...props }) => {
         </mesh>
       </RigidBody>
       <mesh ref={floorRef}>
-        <boxGeometry args={[50, 1, 50]} />
+        <boxGeometry args={[500, 1, 500]} />
         <meshStandardMaterial visible={false} />
-      </mesh>
-      <mesh ref={mousePointRef}>
-        <sphereGeometry />
-        <meshStandardMaterial color={'red'} visible={false} />
       </mesh>
       {isSelected && <Arrow start={mousePosition} end={cuePosition} shoot={shoot} />}
     </>
