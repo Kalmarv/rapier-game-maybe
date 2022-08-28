@@ -29,7 +29,8 @@ const Base = ({ ...props }) => (
 
 const Cue = ({ ...props }) => {
   const [isHovered, setIsHovered] = useState(false)
-  const [isSelected, setIsSelected] = useState(false)
+  const [isShooting, setIsShooting] = useState(false)
+  const [isSleeping, setIsSleeping] = useState(false)
   const [cuePosition, setCuePosition] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0))
   const cueRef = useRef<RigidBodyApi>(null)
   const cueMeshRef = useRef<THREE.Mesh>(null)
@@ -37,12 +38,12 @@ const Cue = ({ ...props }) => {
   const { controls }: { controls: OrbitControlsProps } = useThree()
 
   useEffect(() => {
-    if (cueRef.current && isSelected && cueMeshRef.current) {
+    if (cueRef.current && isShooting && cueMeshRef.current) {
       cueRef.current.setLinvel({ x: 0, y: 0, z: 0 })
       cueRef.current.setAngvel({ x: 0, y: 0, z: 0 })
       setCuePosition(cueMeshRef.current.getWorldPosition(cueRef.current.translation()))
     }
-  }, [cueRef, isSelected])
+  }, [cueRef, isShooting])
 
   const mousePosition = useMouse({
     intersectionObject: floorRef.current,
@@ -50,14 +51,14 @@ const Cue = ({ ...props }) => {
   })
 
   useEventListener('mousedown', () => {
-    if (isHovered) {
-      setIsSelected(true)
+    if (isHovered && isSleeping) {
+      setIsShooting(true)
       controls.enabled = false
     }
   })
 
   useEventListener('mouseup', () => {
-    setIsSelected(false)
+    setIsShooting(false)
     controls.enabled = true
   })
 
@@ -73,14 +74,15 @@ const Cue = ({ ...props }) => {
         colliders='ball'
         type='dynamic'
         ref={cueRef}
-        onSleep={() => console.log('sleep')}
+        onSleep={() => setIsSleeping(true)}
+        onWake={() => setIsSleeping(false)}
         angularDamping={2.5}>
         <mesh
           {...props}
           ref={cueMeshRef}
           scale={[0.1, 0.1, 0.1]}
-          onPointerOver={() => setIsHovered((hovered) => !hovered)}
-          onPointerOut={() => setIsHovered((hovered) => !hovered)}>
+          onPointerOver={() => setIsHovered(isSleeping ? true : false)}
+          onPointerOut={() => setIsHovered(false)}>
           <sphereGeometry />
           <meshStandardMaterial color={isHovered ? 'hotpink' : 'white'} />
         </mesh>
@@ -89,7 +91,7 @@ const Cue = ({ ...props }) => {
         <boxGeometry args={[500, 0, 500]} />
         <meshStandardMaterial visible={false} />
       </mesh>
-      {isSelected && <Arrow start={mousePosition} end={cuePosition} shoot={shoot} />}
+      {isShooting && <Arrow start={mousePosition} end={cuePosition} shoot={shoot} />}
     </>
   )
 }
@@ -132,7 +134,7 @@ const Arrow: React.FC<{
 }
 
 const Stage = () => {
-  const { debug } = useControls({ debug: true })
+  const { debug } = useControls({ debug: false })
   return (
     <Physics colliders={false}>
       {debug && <Debug />}
@@ -150,7 +152,7 @@ const App = () => {
           <PerspectiveCamera makeDefault position={[2, 3, -4]} />
           <ambientLight />
           <OrbitControls makeDefault />
-          <Environment preset='sunset' />
+          <Environment preset='park' background />
           <pointLight position={[10, 10, 10]} />
           <Stage />
         </Suspense>
