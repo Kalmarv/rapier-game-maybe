@@ -13,30 +13,19 @@ import React, { Suspense, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useEventListener } from 'usehooks-ts'
 import { useMouse } from './hooks/use-mouse'
+import { TestRamp } from './TestRamp'
 
 const randomRange = (min: number, max: number) => Math.random() * (max - min) + min
 
 const Base = ({ ...props }) => (
-  <RigidBody colliders='cuboid' type='fixed'>
-    <mesh castShadow receiveShadow {...props}>
+  <RigidBody colliders='trimesh' type='fixed'>
+    {/* <mesh castShadow receiveShadow {...props}>
       <boxGeometry args={[50, 1, 50]} />
       <meshStandardMaterial color='green' />
-    </mesh>
+    </mesh> */}
+    <TestRamp />
   </RigidBody>
 )
-
-const Ball = ({ ...props }) => {
-  return (
-    <>
-      <RigidBody colliders='ball' type='dynamic'>
-        <mesh {...props}>
-          <sphereGeometry />
-          <meshStandardMaterial color={'orange'} />
-        </mesh>
-      </RigidBody>
-    </>
-  )
-}
 
 const Cue = ({ ...props }) => {
   const [isHovered, setIsHovered] = useState(false)
@@ -52,7 +41,6 @@ const Cue = ({ ...props }) => {
       cueRef.current.setLinvel({ x: 0, y: 0, z: 0 })
       cueRef.current.setAngvel({ x: 0, y: 0, z: 0 })
       setCuePosition(cueMeshRef.current.getWorldPosition(cueRef.current.translation()))
-      // cueRef.current.applyImpulse({ x: 0, y: 0, z: 25 })
     }
   }, [cueRef, isSelected])
 
@@ -75,7 +63,7 @@ const Cue = ({ ...props }) => {
 
   const shoot = (power: number, direction: THREE.Vector3) => {
     if (cueRef.current) {
-      cueRef.current.applyImpulse(direction.multiplyScalar(power * 10))
+      cueRef.current.applyImpulse(direction.multiplyScalar(power / 25))
     }
   }
 
@@ -86,10 +74,11 @@ const Cue = ({ ...props }) => {
         type='dynamic'
         ref={cueRef}
         onSleep={() => console.log('sleep')}
-        angularDamping={100}>
+        angularDamping={2.5}>
         <mesh
           {...props}
           ref={cueMeshRef}
+          scale={[0.1, 0.1, 0.1]}
           onPointerOver={() => setIsHovered((hovered) => !hovered)}
           onPointerOut={() => setIsHovered((hovered) => !hovered)}>
           <sphereGeometry />
@@ -97,8 +86,8 @@ const Cue = ({ ...props }) => {
         </mesh>
       </RigidBody>
       <mesh ref={floorRef}>
-        <boxGeometry args={[500, 1, 500]} />
-        <meshStandardMaterial visible={false} />
+        <boxGeometry args={[500, 0, 500]} />
+        <meshStandardMaterial visible={true} />
       </mesh>
       {isSelected && <Arrow start={mousePosition} end={cuePosition} shoot={shoot} />}
     </>
@@ -121,7 +110,7 @@ const Arrow: React.FC<{
     const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec)
 
     if (arrowRef.current) {
-      arrowRef.current.scale.set(0.25, length, 0.25)
+      arrowRef.current.scale.set(0.01, length, 0.01)
       arrowRef.current.setRotationFromQuaternion(quaternion)
       arrowRef.current.position.set(end.x, end.y, end.z)
       arrowRef.current.translateOnAxis(new THREE.Vector3(0, 1, 0), -length / 2)
@@ -143,19 +132,11 @@ const Arrow: React.FC<{
 }
 
 const Stage = () => {
-  const { debug } = useControls({ debug: false })
+  const { debug } = useControls({ debug: true })
   return (
     <Physics colliders={false}>
       {debug && <Debug />}
       <Cue position={[0, 5, 0]} />
-      <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
-      <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
-      <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
-      <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
-      <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
-      <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
-      <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
-      <Ball position={[randomRange(-5, 5), 10, randomRange(-5, 5)]} />
       <Base position={[0, -1, 0]} />
     </Physics>
   )
@@ -166,7 +147,7 @@ const App = () => {
     <>
       <Canvas style={{ width: '100%', height: '100vh' }}>
         <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[10, 15, 30]} />
+          <PerspectiveCamera makeDefault position={[2, 3, -4]} />
           <ambientLight />
           <OrbitControls makeDefault />
           <Environment preset='sunset' />
