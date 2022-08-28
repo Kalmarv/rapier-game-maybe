@@ -1,145 +1,25 @@
-/* eslint-disable react/display-name */
 /* eslint-disable react/prop-types */
-import {
-  Environment,
-  OrbitControls,
-  OrbitControlsProps,
-  PerspectiveCamera,
-} from '@react-three/drei'
-import { Canvas, useThree } from '@react-three/fiber'
-import { Debug, Physics, RigidBody, RigidBodyApi } from '@react-three/rapier'
+import { Environment, OrbitControls, PerspectiveCamera } from '@react-three/drei'
+import { Canvas } from '@react-three/fiber'
+import { Debug, Physics, RigidBody } from '@react-three/rapier'
 import { useControls } from 'leva'
-import React, { Suspense, useEffect, useRef, useState } from 'react'
-import * as THREE from 'three'
-import { useEventListener } from 'usehooks-ts'
-import { useMouse } from './hooks/use-mouse'
-import { TestRamp } from './TestRamp'
+import { Suspense } from 'react'
+import GolfBall from './gameObjects/golf-ball'
+import { TestRamp } from './levels/TestRamp'
 
-const randomRange = (min: number, max: number) => Math.random() * (max - min) + min
-
-const Base = ({ ...props }) => (
+const Base = () => (
   <RigidBody colliders='trimesh' type='fixed'>
-    {/* <mesh castShadow receiveShadow {...props}>
-      <boxGeometry args={[50, 1, 50]} />
-      <meshStandardMaterial color='green' />
-    </mesh> */}
     <TestRamp />
   </RigidBody>
 )
-
-const Cue = ({ ...props }) => {
-  const [isHovered, setIsHovered] = useState(false)
-  const [isShooting, setIsShooting] = useState(false)
-  const [isSleeping, setIsSleeping] = useState(false)
-  const [cuePosition, setCuePosition] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0))
-  const cueRef = useRef<RigidBodyApi>(null)
-  const cueMeshRef = useRef<THREE.Mesh>(null)
-  const floorRef = useRef<THREE.Mesh>(null)
-  const { controls }: { controls: OrbitControlsProps } = useThree()
-
-  useEffect(() => {
-    if (cueRef.current && isShooting && cueMeshRef.current) {
-      cueRef.current.setLinvel({ x: 0, y: 0, z: 0 })
-      cueRef.current.setAngvel({ x: 0, y: 0, z: 0 })
-      setCuePosition(cueMeshRef.current.getWorldPosition(cueRef.current.translation()))
-    }
-  }, [cueRef, isShooting])
-
-  const mousePosition = useMouse({
-    intersectionObject: floorRef.current,
-    relativePoint: cuePosition,
-  })
-
-  useEventListener('mousedown', () => {
-    if (isHovered && isSleeping) {
-      setIsShooting(true)
-      controls.enabled = false
-    }
-  })
-
-  useEventListener('mouseup', () => {
-    setIsShooting(false)
-    controls.enabled = true
-  })
-
-  const shoot = (power: number, direction: THREE.Vector3) => {
-    if (cueRef.current) {
-      cueRef.current.applyImpulse(direction.multiplyScalar(power / 25))
-    }
-  }
-
-  return (
-    <>
-      <RigidBody
-        colliders='ball'
-        type='dynamic'
-        ref={cueRef}
-        onSleep={() => setIsSleeping(true)}
-        onWake={() => setIsSleeping(false)}
-        angularDamping={2.5}>
-        <mesh
-          {...props}
-          ref={cueMeshRef}
-          scale={[0.1, 0.1, 0.1]}
-          onPointerOver={() => setIsHovered(isSleeping ? true : false)}
-          onPointerOut={() => setIsHovered(false)}>
-          <sphereGeometry />
-          <meshStandardMaterial color={isHovered ? 'hotpink' : 'white'} />
-        </mesh>
-      </RigidBody>
-      <mesh ref={floorRef}>
-        <boxGeometry args={[500, 0, 500]} />
-        <meshStandardMaterial visible={false} />
-      </mesh>
-      {isShooting && <Arrow start={mousePosition} end={cuePosition} shoot={shoot} />}
-    </>
-  )
-}
-
-const Arrow: React.FC<{
-  start: THREE.Vector3
-  end: THREE.Vector3
-  shoot: (power: number, direction: THREE.Vector3) => void
-}> = ({ start, end, shoot }) => {
-  const arrowRef = useRef<THREE.Mesh>(null)
-  const [shotLength, setShotLength] = useState(0)
-  const [direction, setDirection] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0))
-
-  useEffect(() => {
-    const vec = end.clone().sub(start)
-    const length = vec.length()
-    vec.normalize()
-    const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec)
-
-    if (arrowRef.current) {
-      arrowRef.current.scale.set(0.01, length, 0.01)
-      arrowRef.current.setRotationFromQuaternion(quaternion)
-      arrowRef.current.position.set(end.x, end.y, end.z)
-      arrowRef.current.translateOnAxis(new THREE.Vector3(0, 1, 0), -length / 2)
-      setShotLength(length)
-      setDirection(new THREE.Vector3().subVectors(end, start).normalize())
-    }
-  }, [start, end])
-
-  useEventListener('mouseup', () => shoot(shotLength, direction))
-
-  return (
-    <>
-      <mesh ref={arrowRef}>
-        <cylinderGeometry />
-        <meshStandardMaterial color={'red'} />
-      </mesh>
-    </>
-  )
-}
 
 const Stage = () => {
   const { debug } = useControls({ debug: false })
   return (
     <Physics colliders={false}>
       {debug && <Debug />}
-      <Cue position={[0, 5, 0]} />
-      <Base position={[0, -1, 0]} />
+      <GolfBall position={[0, 5, 0]} />
+      <Base />
     </Physics>
   )
 }

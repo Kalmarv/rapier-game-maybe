@@ -4,7 +4,7 @@ specifiers:
   '@kalmarv/prettier-config': ^1.0.2
   '@react-three/drei': ^9.23.1
   '@react-three/fiber': ^8.4.1
-  '@react-three/rapier': 0.6.4
+  '@react-three/rapier': ^0.6.5
   '@types/react': ^18.0.17
   '@types/react-dom': ^18.0.6
   '@types/three': ^0.143.1
@@ -31,7 +31,7 @@ specifiers:
 dependencies:
   '@react-three/drei': 9.23.1_ro6di3s5eojfucyculy3b6r5vq
   '@react-three/fiber': 8.4.1_f72olm6mn3unzgg4exeiaoxanm
-  '@react-three/rapier': 0.6.4_ylafxqpvejuzoputtuf23bkg7a
+  '@react-three/rapier': 0.6.5_ylafxqpvejuzoputtuf23bkg7a
   '@types/three': 0.143.1
   leva: 0.9.30_biqbaboplfbrettd7655fr4n2y
   react: 18.2.0
@@ -837,8 +837,8 @@ packages:
       zustand: 3.7.2_react@18.2.0
     dev: false
 
-  /@react-three/rapier/0.6.4_ylafxqpvejuzoputtuf23bkg7a:
-    resolution: {integrity: sha512-tBVWmte9eB70flJc30H+QEzLZBmJbx0VlleIAC28s0GRJnOOiYjXHU2m7j5t3yiwqkoHoejmsAURc9K00/Eikg==}
+  /@react-three/rapier/0.6.5_ylafxqpvejuzoputtuf23bkg7a:
+    resolution: {integrity: sha512-SOW/kHJpImkqPhyD61tkhcWo2pLTJ1AlJKIvwogIr7RBOBzfFeV7+OHpjWhRXVKRYvWpRPMSbJWO+jYlSoRQZw==}
     peerDependencies:
       '@react-three/fiber': ^8.0.12
       react: ^18.0.0
