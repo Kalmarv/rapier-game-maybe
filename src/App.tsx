@@ -15,12 +15,20 @@ const Base = () => (
 
 const Stage = () => {
   const { debug } = useControls({ debug: false })
+
+  // Not sure how to to not have the golf balls collide with each other, but with the ground
   return (
-    <Physics colliders={false}>
-      {debug && <Debug />}
-      <GolfBall position={[0, 5, 0]} />
-      <Base />
-    </Physics>
+    <>
+      <Physics colliders={false}>
+        {debug && <Debug />}
+        <GolfBall position={[0, 5, 0]} />
+        <Base />
+      </Physics>
+      <Physics colliders={false}>
+        <GolfBall position={[0, 5, 0.1]} />
+        <Base />
+      </Physics>
+    </>
   )
 }
 

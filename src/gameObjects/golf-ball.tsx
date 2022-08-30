@@ -1,5 +1,5 @@
 import { OrbitControlsProps } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { RigidBody, RigidBodyApi } from '@react-three/rapier'
 import { useState, useRef, useEffect } from 'react'
 import * as THREE from 'three'
@@ -47,15 +47,15 @@ const GolfBall = ({ ...props }) => {
     }
   }
 
+  useFrame(() => {
+    if (ballPhysicsRef.current) {
+      ballPhysicsRef.current.linvel().length() < 0.05 ? setIsSleeping(true) : setIsSleeping(false)
+    }
+  })
+
   return (
     <>
-      <RigidBody
-        colliders='ball'
-        type='dynamic'
-        ref={ballPhysicsRef}
-        onSleep={() => setIsSleeping(true)}
-        onWake={() => setIsSleeping(false)}
-        angularDamping={2.5}>
+      <RigidBody colliders='ball' type='dynamic' ref={ballPhysicsRef} angularDamping={2.5}>
         <mesh
           {...props}
           ref={ballMeshRef}
@@ -63,7 +63,7 @@ const GolfBall = ({ ...props }) => {
           onPointerOver={() => setIsHovered(isSleeping ? true : false)}
           onPointerOut={() => setIsHovered(false)}>
           <sphereGeometry />
-          <meshStandardMaterial color={isHovered ? 'hotpink' : 'white'} />
+          <meshStandardMaterial color={isHovered ? 'blue' : isSleeping ? 'hotpink' : 'white'} />
         </mesh>
       </RigidBody>
       <mesh ref={floorRef}>
