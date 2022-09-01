@@ -20,67 +20,86 @@ type GLTFResult = GLTF & {
     Cube008: THREE.Mesh
     Cube009: THREE.Mesh
     Cube010: THREE.Mesh
+    winTrigger: THREE.Mesh
   }
-  materials: {}
+  materials: {
+    Grass: THREE.MeshStandardMaterial
+    Wood: THREE.MeshStandardMaterial
+  }
 }
 
-export function TestRamp(props: JSX.IntrinsicElements['group']) {
-  const { nodes, materials } = useGLTF('/testRamp.glb') as GLTFResult
+export function Model(props: JSX.IntrinsicElements['group']) {
+  const { nodes, materials } = useGLTF('/holeOneColliders.glb') as GLTFResult
   return (
     <group {...props} dispose={null}>
-      <mesh geometry={nodes.Cube.geometry} material={nodes.Cube.material} />
-      <mesh geometry={nodes.Cube001.geometry} material={nodes.Cube001.material} />
-      <mesh geometry={nodes.Cube002.geometry} material={nodes.Cube002.material} />
+      <mesh name='Cube' geometry={nodes.Cube.geometry} material={materials.Grass} />
+      <mesh name='Cube001' geometry={nodes.Cube001.geometry} material={materials.Grass} />
+      <mesh name='Cube002' geometry={nodes.Cube002.geometry} material={materials.Grass} />
       <mesh
+        name='Cube003'
         geometry={nodes.Cube003.geometry}
-        material={nodes.Cube003.material}
+        material={materials.Wood}
         position={[-1.08, 0.17, 0]}
         scale={[0.1, 1, 1]}
       />
       <mesh
+        name='Cube004'
         geometry={nodes.Cube004.geometry}
-        material={nodes.Cube004.material}
+        material={materials.Wood}
         position={[-1.08, 0.17, 0]}
         scale={[0.1, 1, 1]}
       />
       <mesh
+        name='Cube005'
         geometry={nodes.Cube005.geometry}
-        material={nodes.Cube005.material}
+        material={materials.Wood}
         position={[-1.08, 0.17, 0]}
         scale={[0.1, 1, 1]}
       />
       <mesh
+        name='Cube006'
         geometry={nodes.Cube006.geometry}
-        material={nodes.Cube006.material}
+        material={materials.Wood}
         position={[1.09, 0.17, 0]}
         scale={[0.1, 1, 1]}
       />
       <mesh
+        name='Cube007'
         geometry={nodes.Cube007.geometry}
-        material={nodes.Cube007.material}
+        material={materials.Wood}
         position={[1.09, 0.17, 0]}
         scale={[0.1, 1, 1]}
       />
       <mesh
+        name='Cube008'
         geometry={nodes.Cube008.geometry}
-        material={nodes.Cube008.material}
+        material={materials.Wood}
         position={[1.09, 0.17, 0]}
         scale={[0.1, 1, 1]}
       />
       <mesh
+        name='Cube009'
         geometry={nodes.Cube009.geometry}
-        material={nodes.Cube009.material}
+        material={materials.Wood}
         position={[0, 0.17, -3.08]}
         scale={[1.2, 0.1, 0.1]}
       />
       <mesh
+        name='Cube010'
         geometry={nodes.Cube010.geometry}
-        material={nodes.Cube010.material}
+        material={materials.Wood}
         position={[0, 2.46, 14.26]}
         scale={[1.2, 0.1, 0.1]}
+      />
+      <mesh
+        name='winTrigger'
+        geometry={nodes.winTrigger.geometry}
+        material={nodes.winTrigger.material}
+        position={[0, 2.13, 13.43]}
+        scale={[0.47, 1, 0.15]}
       />
     </group>
   )
 }
 
-useGLTF.preload('/testRamp.glb')
+useGLTF.preload('/holeOneColliders.glb')

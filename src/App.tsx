@@ -5,12 +5,16 @@ import { Debug, Physics, RigidBody } from '@react-three/rapier'
 import { useControls } from 'leva'
 import { Suspense } from 'react'
 import GolfBall from './gameObjects/golf-ball'
-import { TestRamp } from './levels/TestRamp'
+import { Model as HoleOneColliders } from './levels/HoleOneColliders'
+import { Model as HoleOneScenery } from './levels/HoleOneScenery'
 
 const Base = () => (
-  <RigidBody colliders='trimesh' type='fixed'>
-    <TestRamp />
-  </RigidBody>
+  <>
+    <RigidBody colliders='trimesh' type='fixed'>
+      <HoleOneColliders />
+    </RigidBody>
+    <HoleOneScenery />
+  </>
 )
 
 const Stage = () => {
@@ -22,10 +26,6 @@ const Stage = () => {
       <Physics colliders={false}>
         {debug && <Debug />}
         <GolfBall position={[0, 5, 0]} />
-        <Base />
-      </Physics>
-      <Physics colliders={false}>
-        <GolfBall position={[0, 5, 0.1]} />
         <Base />
       </Physics>
     </>
